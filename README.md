@@ -46,8 +46,3 @@ Input must feel like rapid-fire tagging — tap tap tap, done. Not a form, not a
 If a user takes too long on an A/B comparison (threshold ~10 seconds), flash a subtle hint encouraging them to trust their gut. Copy should vary across the session and escalate gently if they keep hesitating — e.g. "Trust your gut." → "Still here?" → "Just pick one." Show no more than once or twice per session to avoid feeling naggy.
 
 Pairs where hesitation fired are internally flagged as "close calls." On the results screen, tasks involved in close calls get a subtle caveat — e.g. "This one was close" — acknowledging the psychological tie without breaking the ranking mechanic. The forced choice still stands; the app just admits it was hard.
-
-### Other
-Additional modes: what to watch, UCAS choices
-Free tier: 4 tasks cap (6 comparisons)
-Paid tier: higher limits, all modes, saved sessions
