@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Triage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent:       var(--accent);
+      --accent-hover: var(--accent-hover);
+      --accent-light: var(--accent-light);
+      --accent-mid:   var(--accent-mid);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      color: #1A1A1A;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-light) 0%, #F4F3FA 45%, #F0F0EC 100%);
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    /* Step indicator */
+    .steps {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 32px;
+    }
+    .step-dot {
+      height: 4px;
+      flex: 1;
+      border-radius: 2px;
+      background: #E8E8E4;
+      transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--accent); }
+    .step-dot.done   { background: var(--accent-mid); }
+
+    /* Headings */
+    h1 {
+      font-size: 24px;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    /* Input */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1.5px solid #E8E8E4;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1A1A1A;
+      background: #FAFAF8;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); background: white; }
+    input[type="text"]::placeholder { color: #C0BDB8; }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { background: #C0BDB8; cursor: default; transform: none; }
+
+    .btn-secondary { background: #F0EFF8; color: var(--accent); }
+    .btn-secondary:hover { background: #E4E2F5; }
+
+    .btn-ghost { background: transparent; color: #888; padding: 8px 12px; }
+    .btn-ghost:hover { color: #1A1A1A; }
+
+    .btn-icon {
+      width: 42px; height: 42px;
+      padding: 0; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    /* Task list */
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #F9F9F7;
+      border-radius: 10px;
+      font-size: 15px;
+      animation: slideIn 0.2s ease;
+    }
+    .task-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: #C0BDB8;
+      width: 18px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .task-item span:not(.task-num) { flex: 1; }
+    .task-remove {
+      color: #C0BDB8;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 15px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+    .task-remove:hover { color: #FF6B6B; }
+
+    /* Comparison */
+    .comparison-top {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .comparison-top h1 { font-size: 19px; }
+
+    .comparison-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .cdot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #E8E8E4;
+      transition: background 0.15s;
+    }
+    .cdot.done    { background: var(--accent-mid); }
+    .cdot.current { background: var(--accent); }
+
+    .comparison-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .comparison-btn {
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: #F9F9F7;
+      border: 2px solid #E8E8E4;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #1A1A1A;
+    }
+    .comparison-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    /* Task hint / cap notice */
+    .task-hint {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 10px;
+      background: var(--accent-light);
+      border-radius: 10px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    /* Undo */
+    .undo-row {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .btn-undo {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      color: #C0BDB8;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+    .btn-undo:hover { color: #888; }
+    .btn-undo:disabled { opacity: 0; pointer-events: none; }
+
+    /* Results */
+    .result-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #F9F9F7;
+      border-radius: 12px;
+      animation: slideIn 0.3s ease both;
+    }
+    .result-item:nth-child(1) { animation-delay: 0.05s; }
+    .result-item:nth-child(2) { animation-delay: 0.10s; }
+    .result-item:nth-child(3) { animation-delay: 0.15s; }
+    .result-item:nth-child(4) { animation-delay: 0.20s; }
+    .result-item:nth-child(5) { animation-delay: 0.25s; }
+    .result-item.winner {
+      background: var(--accent-light);
+      padding: 18px 16px;
+    }
+    .result-rank {
+      font-size: 20px;
+      font-weight: 800;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+      color: #C0BDB8;
+    }
+    .result-rank.gold   { color: #F5A623; font-size: 24px; }
+    .result-rank.silver { color: #9B9B9B; }
+    .result-rank.bronze { color: #C47C3D; }
+    .result-info { flex: 1; }
+    .result-name  { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+    .result-name.winner-name { font-size: 18px; }
+    .result-score { font-size: 13px; color: #888; }
+
+    /* Actions row */
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .actions-right {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    /* Screen transitions */
+    .screen { display: none; }
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="steps">
+    <div class="step-dot" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+  </div>
+
+  <!-- Screen 1: Tasks -->
+  <div class="screen active" id="screen-1">
+    <h1>What are you juggling?</h1>
+    <p class="subtitle">Add 3–8 tasks and we'll help you figure out what to tackle first.</p>
+    <div class="input-row">
+      <input type="text" id="task-input" placeholder="Add a task…" />
+      <button class="btn btn-primary btn-icon" id="add-task-btn">+</button>
+    </div>
+    <ul class="task-list" id="task-list"></ul>
+    <div id="task-cap-msg"></div>
+    <div class="actions">
+      <div class="actions-right">
+        <button class="btn btn-primary" id="to-compare-btn" disabled>Start comparing →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Comparisons -->
+  <div class="screen" id="screen-2">
+    <div class="comparison-top">
+      <h1 id="compare-prompt"></h1>
+    </div>
+    <div class="comparison-dots" id="comparison-dots"></div>
+    <div class="comparison-options">
+      <button class="comparison-btn" id="compare-a"></button>
+      <button class="comparison-btn" id="compare-b"></button>
+    </div>
+    <div class="undo-row">
+      <button class="btn-undo" id="undo-btn" disabled>← Actually…</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Results -->
+  <div class="screen" id="screen-3">
+    <h1>Right, let's go.</h1>
+    <p class="subtitle">Your tasks ranked based on your comparisons.</p>
+    <ul class="result-list" id="result-list"></ul>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" style="flex:1" id="copy-text-btn">Copy as text</button>
+        <button class="btn btn-primary" style="flex:1" id="copy-md-btn">Copy as markdown</button>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn btn-ghost" id="restart-btn">Start over</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Palette ────────────────────────────────────────────────────────────────
+  const PALETTES = [
+    { accent: '#6C63FF', hover: '#5A52E8', light: '#EEEDFF', mid: '#B8B4FF', rgb: '108,99,255'  }, // violet
+    { accent: '#0EA5A0', hover: '#0B8A86', light: '#E0F7F6', mid: '#7DD3D0', rgb: '14,165,160'  }, // teal
+    { accent: '#F97316', hover: '#EA6A0A', light: '#FEF0E6', mid: '#FBB88A', rgb: '249,115,22'  }, // orange
+    { accent: '#EC4899', hover: '#D93585', light: '#FDE8F3', mid: '#F7A8D0', rgb: '236,72,153'  }, // pink
+    { accent: '#3B82F6', hover: '#2563EB', light: '#EFF6FF', mid: '#93C5FD', rgb: '59,130,246'  }, // blue
+    { accent: '#16A34A', hover: '#15803D', light: '#ECFDF5', mid: '#86EFAC', rgb: '22,163,74'   }, // green
+  ];
+
+  const palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+  const root = document.documentElement;
+  root.style.setProperty('--accent',       palette.accent);
+  root.style.setProperty('--accent-hover', palette.hover);
+  root.style.setProperty('--accent-light', palette.light);
+  root.style.setProperty('--accent-mid',   palette.mid);
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const PROMPTS = [
+    'Which would you tackle first?',
+    'Which one can\'t wait?',
+    'If you could only do one, which is it?',
+    'Be honest — which goes first?',
+    'Which is calling your name?',
+    'Head to head — which wins?',
+    'Which takes priority right now?',
+    'Which matters more today?',
+  ];
+
+  const MAX_TASKS = 8;
+  let tasks = [];
+  let pairs = [];
+  let pairIndex = 0;
+  let scores = {};
+  let headToHead = {}; // headToHead[winner][loser] = true
+  let history = [];    // stack of winner task names for undo
+
+  // ── Screens ────────────────────────────────────────────────────────────────
+  function showScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(`screen-${n}`).classList.add('active');
+    for (let i = 1; i <= 3; i++) {
+      const dot = document.getElementById(`dot-${i}`);
+      dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+    }
+  }
+
+  // ── Screen 1: Tasks ────────────────────────────────────────────────────────
+  const taskInput    = document.getElementById('task-input');
+  const addTaskBtn   = document.getElementById('add-task-btn');
+  const taskListEl   = document.getElementById('task-list');
+  const toCompareBtn = document.getElementById('to-compare-btn');
+
+  function renderTasks() {
+    taskListEl.innerHTML = '';
+    tasks.forEach((t, i) => {
+      const li = document.createElement('li');
+      li.className = 'task-item';
+      li.innerHTML = `<span class="task-num">${i + 1}</span><span>${t}</span><button class="task-remove" data-i="${i}">✕</button>`;
+      taskListEl.appendChild(li);
+    });
+    const atCap = tasks.length >= MAX_TASKS;
+    addTaskBtn.disabled = atCap;
+    taskInput.disabled = atCap;
+
+    const hint = document.getElementById('task-cap-msg');
+    if (atCap) {
+      hint.innerHTML = `<p class="task-hint">That's your 8 — time to start comparing.</p>`;
+    } else if (tasks.length === 1) {
+      hint.innerHTML = `<p class="task-hint">One task? Stop procrastinating and just do it.</p>`;
+    } else if (tasks.length === 2) {
+      hint.innerHTML = `<p class="task-hint">Only two? We'll let fate decide.</p>`;
+    } else {
+      hint.innerHTML = '';
+    }
+
+    if (tasks.length === 0) {
+      toCompareBtn.textContent = 'Start comparing →';
+      toCompareBtn.disabled = true;
+    } else if (tasks.length === 1) {
+      toCompareBtn.textContent = 'Just do it →';
+      toCompareBtn.disabled = false;
+    } else if (tasks.length === 2) {
+      toCompareBtn.textContent = 'Flip a coin →';
+      toCompareBtn.disabled = false;
+    } else {
+      toCompareBtn.textContent = 'Start comparing →';
+      toCompareBtn.disabled = false;
+    }
+  }
+
+  function addTask() {
+    const val = taskInput.value.trim();
+    if (!val || tasks.length >= MAX_TASKS) return;
+    tasks.push(val);
+    taskInput.value = '';
+    renderTasks();
+    taskInput.focus();
+  }
+
+  addTaskBtn.addEventListener('click', addTask);
+  taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+  taskListEl.addEventListener('click', e => {
+    if (e.target.classList.contains('task-remove')) {
+      tasks.splice(+e.target.dataset.i, 1);
+      renderTasks();
+    }
+  });
+  toCompareBtn.addEventListener('click', () => {
+    if (tasks.length === 1) {
+      window.close();
+      setTimeout(() => { window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; }, 100);
+    } else if (tasks.length === 2) {
+      const wi = Math.floor(Math.random() * 2);
+      const winner = tasks[wi], loser = tasks[1 - wi];
+      scores = { [winner]: 1, [loser]: 0 };
+      headToHead = { [winner]: { [loser]: true }, [loser]: {} };
+      history = [];
+      showResults('coin');
+    } else {
+      startComparisons();
+      showScreen(2);
+    }
+  });
+
+  // ── Screen 2: Comparisons ──────────────────────────────────────────────────
+  function generatePairs(arr) {
+    const p = [];
+    for (let i = 0; i < arr.length; i++)
+      for (let j = i + 1; j < arr.length; j++)
+        p.push([arr[i], arr[j]]);
+    for (let i = p.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [p[i], p[j]] = [p[j], p[i]];
+    }
+    return p;
+  }
+
+  function startComparisons() {
+    pairs = generatePairs(tasks);
+    pairIndex = 0;
+    scores = {};
+    headToHead = {};
+    history = [];
+    tasks.forEach(t => { scores[t] = 0; headToHead[t] = {}; });
+    renderComparison();
+  }
+
+  function renderDots() {
+    const container = document.getElementById('comparison-dots');
+    container.innerHTML = '';
+    pairs.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'cdot' + (i < pairIndex ? ' done' : i === pairIndex ? ' current' : '');
+      container.appendChild(dot);
+    });
+  }
+
+  function renderComparison() {
+    const [a, b] = pairs[pairIndex];
+    document.getElementById('compare-a').textContent = a;
+    document.getElementById('compare-b').textContent = b;
+    document.getElementById('compare-prompt').textContent = PROMPTS[pairIndex % PROMPTS.length];
+    document.getElementById('undo-btn').disabled = pairIndex === 0;
+    renderDots();
+  }
+
+  function recordChoice(winnerIdx) {
+    const [a, b] = pairs[pairIndex];
+    const winner = winnerIdx === 0 ? a : b;
+    const loser  = winnerIdx === 0 ? b : a;
+    scores[winner]++;
+    headToHead[winner][loser] = true;
+    history.push(winner);
+    pairIndex++;
+    if (pairIndex >= pairs.length) showResults();
+    else renderComparison();
+  }
+
+  function undoChoice() {
+    if (pairIndex === 0) return;
+    pairIndex--;
+    const winner = history.pop();
+    const [a, b] = pairs[pairIndex];
+    const loser = winner === a ? b : a;
+    scores[winner]--;
+    delete headToHead[winner][loser];
+    renderComparison();
+  }
+
+  document.getElementById('compare-a').addEventListener('click', () => recordChoice(0));
+  document.getElementById('compare-b').addEventListener('click', () => recordChoice(1));
+  document.getElementById('undo-btn').addEventListener('click', undoChoice);
+
+  // ── Screen 3: Results ──────────────────────────────────────────────────────
+  function showResults(mode = 'compare') {
+    const headings = {
+      single:  ['Just do it.',        'You already knew this one.'],
+      coin:    ['The coin has spoken.','Now stop dithering.'],
+      compare: ['Right, let\'s go.',  'Your tasks ranked based on your comparisons.'],
+    };
+    const [h1, sub] = headings[mode];
+    document.querySelector('#screen-3 h1').textContent = h1;
+    document.querySelector('#screen-3 .subtitle').textContent = sub;
+
+    const sorted = Object.entries(scores).sort(([nameA, winsA], [nameB, winsB]) => {
+      if (winsB !== winsA) return winsB - winsA;
+      // Tiebreak: head-to-head result
+      return headToHead[nameA]?.[nameB] ? -1 : 1;
+    });
+
+    const maxWins = tasks.length - 1;
+    const resultListEl = document.getElementById('result-list');
+    resultListEl.innerHTML = '';
+
+    sorted.forEach(([name, wins], i) => {
+      const isWinner = i === 0;
+      const li = document.createElement('li');
+      li.className = 'result-item' + (isWinner ? ' winner' : '');
+
+      const rankEl = document.createElement('span');
+      rankEl.className = 'result-rank' + (i === 0 ? ' gold' : i === 1 ? ' silver' : i === 2 ? ' bronze' : '');
+      rankEl.textContent = i + 1;
+
+      const info = document.createElement('div');
+      info.className = 'result-info';
+      info.innerHTML = `<div class="result-name${isWinner ? ' winner-name' : ''}">${name}</div>`;
+
+      li.appendChild(rankEl);
+      li.appendChild(info);
+      resultListEl.appendChild(li);
+    });
+
+    showScreen(3);
+  }
+
+  function copyResults(format) {
+    const sorted = Object.entries(scores).sort(([nameA, winsA], [nameB, winsB]) => {
+      if (winsB !== winsA) return winsB - winsA;
+      return headToHead[nameA]?.[nameB] ? -1 : 1;
+    });
+    const text = format === 'md'
+      ? sorted.map(([name], i) => `- [ ] ${name}`).join('\n')
+      : sorted.map(([name], i) => `${i + 1}. ${name}`).join('\n');
+    navigator.clipboard.writeText(text);
+    const btn = document.getElementById(format === 'md' ? 'copy-md-btn' : 'copy-text-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }
+
+  document.getElementById('copy-text-btn').addEventListener('click', () => copyResults('text'));
+  document.getElementById('copy-md-btn').addEventListener('click', () => copyResults('md'));
+
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    tasks = [];
+    pairs = [];
+    pairIndex = 0;
+    scores = {};
+    headToHead = {};
+    history = [];
+    renderTasks();
+    showScreen(1);
+  });
+
+  // ── Background pattern ────────────────────────────────────────────────────
+  (async function drawPattern() {
+    await document.fonts.load(`400 64px 'Anton'`);
+    const canvas = document.createElement('canvas');
+    const dpr = window.devicePixelRatio || 1;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const fontSize = 64;
+    ctx.font = `400 ${fontSize}px 'Anton', sans-serif`;
+    ctx.fillStyle = `rgba(${palette.rgb},0.13)`;
+    ctx.textBaseline = 'middle';
+
+    const text     = 'TASK TRIAGE';
+    const colGap   = 60;
+    const rowGap   = 80;
+    const angle    = -25 * Math.PI / 180;
+    const textW    = ctx.measureText(text).width + colGap;
+    const diag     = Math.sqrt(W * W + H * H);
+    const cols     = Math.ceil(diag / textW) + 2;
+    const rows     = Math.ceil(diag / rowGap) + 2;
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(angle);
+    for (let r = -rows; r <= rows; r++) {
+      for (let c = -cols; c <= cols; c++) {
+        ctx.fillText(text, c * textW, r * rowGap);
+      }
+    }
+    ctx.restore();
+  })();
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  showScreen(1);
+</script>
+</body>
+</html>
