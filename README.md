@@ -2,6 +2,8 @@
 
 **[→ Try it](https://agladman.github.io/task-triage/)**
 
+Installable as a PWA — open in Safari on iOS and choose "Add to Home Screen".
+
 A single-file HTML/JS app (no server, no dependencies) that helps you prioritise a list of tasks through pairwise comparison. The core philosophy: help the user discover what they already know, not impose false objectivity.
 
 Based on the [prioritisation matrix](https://en.wikipedia.org/wiki/Paired_comparison_analysis) method.
