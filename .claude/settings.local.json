@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config *)",
+      "Bash(grep -n \"color\\\\|#[0-9a-fA-F]\\\\{3,6\\\\}\" /Users/anthonygladman/Documents/Code/task-triage/index.html)",
+      "Bash(sips -z 192 192 icon.png --out icon-192.png)",
+      "Bash(sips -z 180 180 icon.png --out icon-180.png)"
+    ]
+  }
+}
