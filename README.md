@@ -1,5 +1,7 @@
 # Decision Triage App — PoC Brief
 
+**[→ Try it](https://agladman.github.io/task-triage/)**
+
 ## Concept
 A local, single-file HTML/JS app (no API, no dependencies) that helps users make quick decisions by structuring their thinking. The core philosophy: help the user discover what they already know, not impose false objectivity.
 
