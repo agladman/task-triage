@@ -32,8 +32,17 @@ Minimum 3 tasks, maximum 8 (28 comparisons). Ties broken by head-to-head result.
 
 ## Future thinking (not for PoC)
 
-Weighted mode: select and rank factors (Urgency, Importance, etc.); tasks are scored against each factor and the ranking is computed — gives a real breakdown of what drove the order
+### Weighted mode
+A hybrid scoring model for decisions where external constraints are real and quantifiable:
 
+- **Hard factors** (concrete, external) — deadline proximity, money/payment status, blocking dependencies. Contribute real weighted scores. Input via fast bucket selection, not typing or date pickers (e.g. deadline: this week / this month / this quarter / none; payment: paid / unpaid but funded / speculative)
+- **Soft factors** (personal, directional) — long-term importance, goal alignment. Act as a +1 nudge rather than a primary score driver. Binary yes/no per task.
+
+When hard factor scores are tied, soft +1s break the deadlock. Designed for portfolio-style decisions (e.g. competing creative or professional projects) where opportunity cost is real.
+
+Input must feel like rapid-fire tagging — tap tap tap, done. Not a form, not a spreadsheet.
+
+### Other
 Additional modes: what to watch, UCAS choices
 Free tier: 4 tasks cap (6 comparisons)
 Paid tier: higher limits, all modes, saved sessions
