@@ -1,48 +1,21 @@
-# Decision Triage App — PoC Brief
+# Decision Triage App — PoC
 
 **[→ Try it](https://agladman.github.io/task-triage/)**
 
-## Concept
-A local, single-file HTML/JS app (no API, no dependencies) that helps users make quick decisions by structuring their thinking. The core philosophy: help the user discover what they already know, not impose false objectivity.
+A single-file HTML/JS app (no server, no dependencies) that helps you prioritise a list of tasks through pairwise comparison. The core philosophy: help the user discover what they already know, not impose false objectivity.
 
-## PoC: To-do Triage
+Based on the [prioritisation matrix](https://en.wikipedia.org/wiki/Paired_comparison_analysis) method.
 
-The app adapts based on how many tasks are entered:
+## How it works
 
-### 1 task — Just do it
-The app closes the tab. If it can't, it redirects to a Rickroll. No results screen. The app refuses to engage.
+The app adapts based on how many tasks you enter:
 
-### 2 tasks — Coin toss
-A random winner is picked. Result screen: "The coin has spoken." / "Now stop dithering."
+- **1 task** — the app closes the tab. You don't need an app for this.
+- **2 tasks** — coin toss. "The coin has spoken."
+- **3–8 tasks** — full triage: pairwise A/B comparisons → ranked result
 
-### 3–8 tasks — Full triage
-Enter tasks → pairwise A/B comparisons → ranked result
+Ties are broken by the head-to-head result between tied tasks.
 
-Minimum 3 tasks, maximum 8 (28 comparisons). Ties broken by head-to-head result.
+## Future modes
 
-### Design Principles
-
-- Clean, fast UI — feels considered, not like a settings panel
-- Has a point of view
-- Rotating comparison prompts across 8 variants
-- Dot-per-comparison progress indicator; undo last choice ("← Actually…")
-- Results exportable as plain text or markdown checklist
-- TASK TRIAGE background texture; Anton display font for headings
-- Accent colour cycles randomly on each reload (violet, teal, orange, pink, blue, green)
-
-## Future thinking (not for PoC)
-
-### Weighted mode
-A hybrid scoring model for decisions where external constraints are real and quantifiable:
-
-- **Hard factors** (concrete, external) — deadline proximity, money/payment status, blocking dependencies. Contribute real weighted scores. Input via fast bucket selection, not typing or date pickers (e.g. deadline: this week / this month / this quarter / none; payment: paid / unpaid but funded / speculative)
-- **Soft factors** (personal, directional) — long-term importance, goal alignment. Act as a +1 nudge rather than a primary score driver. Binary yes/no per task.
-
-When hard factor scores are tied, soft +1s break the deadlock. Designed for portfolio-style decisions (e.g. competing creative or professional projects) where opportunity cost is real.
-
-Input must feel like rapid-fire tagging — tap tap tap, done. Not a form, not a spreadsheet.
-
-### Hesitation nudge + close call flagging
-If a user takes too long on an A/B comparison (threshold ~10 seconds), flash a subtle hint encouraging them to trust their gut. Copy should vary across the session and escalate gently if they keep hesitating — e.g. "Trust your gut." → "Still here?" → "Just pick one." Show no more than once or twice per session to avoid feeling naggy.
-
-Pairs where hesitation fired are internally flagged as "close calls." On the results screen, tasks involved in close calls get a subtle caveat — e.g. "This one was close" — acknowledging the psychological tie without breaking the ranking mechanic. The forced choice still stands; the app just admits it was hard.
+- **Weighted mode** — for decisions where external constraints (deadlines, money, dependencies) are real and quantifiable, alongside softer personal factors
