@@ -445,15 +445,18 @@
     }
 
     if (tasks.length === 0) {
-      toCompareBtn.textContent = 'Start comparing →';
-      toCompareBtn.disabled = true;
+      toCompareBtn.style.display = 'none';
     } else if (tasks.length === 1) {
+      toCompareBtn.style.display = '';
+
       toCompareBtn.textContent = 'Just do it →';
       toCompareBtn.disabled = false;
     } else if (tasks.length === 2) {
+      toCompareBtn.style.display = '';
       toCompareBtn.textContent = 'Flip a coin →';
       toCompareBtn.disabled = false;
     } else {
+      toCompareBtn.style.display = '';
       toCompareBtn.textContent = 'Start comparing →';
       toCompareBtn.disabled = false;
     }
